@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Magic Note (매직 노트) - macOS 스마트 노트 앱</title>
+  <meta name="description" content="가볍고 빠른 macOS용 네이티브 스마트 노트 앱, Magic Note를 다운로드하세요." />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              800: '#5b21b6',
+              900: '#4c1d95',
+            },
+            mac: {
+              dark: '#121316',
+              card: '#1c1d22',
+              border: '#2a2b32',
+              sidebar: '#18191e'
+            }
+          },
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Pretendard Font & Icons -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: #0b0c10;
+      color: #e2e8f0;
+    }
+    
+    .glow-purple {
+      box-shadow: 0 0 50px -10px rgba(139, 92, 246, 0.35);
+    }
+    
+    .glass-panel {
+      background: rgba(26, 27, 35, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .glass-card {
+      background: rgba(28, 29, 36, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.3s ease;
+    }
+    
+    .glass-card:hover {
+      border-color: rgba(139, 92, 246, 0.4);
+      transform: translateY(-2px);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .gradient-badge {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15));
+      border: 1px solid rgba(167, 139, 250, 0.3);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f1015;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #272935;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3f4255;
+    }
+  </style>
+</head>
+<body class="min-h-screen selection:bg-brand-500 selection:text-white relative overflow-x-hidden">
+
+  <!-- Background decorative light gradients -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-brand-600/20 via-brand-900/10 to-transparent blur-3xl pointer-events-none -z-10"></div>
+  <div class="absolute top-[800px] -right-40 w-[600px] h-[600px] bg-purple-900/15 blur-[120px] pointer-events-none -z-10"></div>
+  <div class="absolute top-[1400px] -left-40 w-[600px] h-[600px] bg-indigo-900/15 blur-[120px] pointer-events-none -z-10"></div>
+
+  <!-- Navigation Bar -->
+  <header class="sticky top-0 z-50 glass-panel border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 p-0.5 shadow-lg shadow-brand-500/20 flex items-center justify-center">
+          <div class="w-full h-full bg-[#121318] rounded-[10px] flex items-center justify-center">
+            <i data-lucide="sparkles" class="w-5 h-5 text-brand-400"></i>
+          </div>
+        </div>
+        <div>
+          <span class="font-bold text-lg text-white tracking-tight">Magic Note</span>
+          <span class="text-xs text-brand-400 ml-1.5 px-2 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20">for macOS</span>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
+        <a href="#features" class="hover:text-white transition-colors">주요 기능</a>
+        <a href="#guide" class="hover:text-white transition-colors flex items-center gap-1.5 text-amber-300 hover:text-amber-200">
+          <i data-lucide="shield-alert" class="w-4 h-4"></i>
+          <span>실행 안내 (Gatekeeper)</span>
+        </a>
+        <a href="#faq" class="hover:text-white transition-colors">자주 묻는 질문</a>
+      </nav>
+
+      <div>
+        <a href="https://drive.google.com/file/d/16Qkdp1PL6v5PnHdcx_lznPVb0yeWUWc6/view?usp=sharing" 
+           target="_blank" 
+           rel="noopener noreferrer" 
+           class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl shadow-lg shadow-brand-600/30 transition-all hover:scale-105 active:scale-95">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>앱 다운로드</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-20 text-center relative">
+    <!-- Release Tag -->
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full gradient-badge text-brand-300 text-sm font-medium mb-8">
+      <span class="flex h-2 w-2 rounded-full bg-brand-400 animate-ping"></span>
+      <i data-lucide="apple" class="w-4 h-4 text-white"></i>
+      <span>macOS Swift 네이티브 메모 앱 v1.0</span>
+    </div>
+
+    <!-- Main Title -->
+    <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+      생각을 마법처럼 빠르고<br class="hidden sm:inline" />
+      <span class="gradient-text">깔끔하게 기록하는</span> Magic Note
+    </h1>
+
+    <!-- Subtitle -->
+    <p class="max-w-2xl mx-auto text-lg sm:text-xl text-slate-400 mb-10 leading-relaxed font-normal">
+      복잡한 설정 없이 번개처럼 빠른 속도로 아이디어를 기록하세요.<br />
+      오직 macOS만을 위해 Swift로 정밀하게 설계된 네이티브 노트 앱입니다.
+    </p>
+
+    <!-- Download Buttons & Meta -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+      <a href="https://drive.google.com/file/d/16Qkdp1PL6v5PnHdcx_lznPVb0yeWUWc6/view?usp=sharing" 
+         target="_blank" 
+         rel="noopener noreferrer"
+         class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 text-base font-bold text-white bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 rounded-2xl shadow-xl shadow-brand-600/30 hover:shadow-brand-600/50 hover:scale-[1.02] active:scale-[0.98] transition-all">
+        <i data-lucide="download-cloud" class="w-5 h-5"></i>
+        <span>Magic Note 무료 다운로드 (Google Drive)</span>
+      </a>
+      <a href="#guide" 
+         class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 text-base font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all">
+        <i data-lucide="help-circle" class="w-5 h-5 text-amber-400"></i>
+        <span>실행 오류 해결 가이드</span>
+      </a>
+    </div>
+
+    <!-- Compatibility Badge -->
+    <div class="flex items-center justify-center gap-4 text-xs text-slate-500 font-medium">
+      <span class="flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i> macOS 12.0 Monterey 이상 지원</span>
+      <span>•</span>
+      <span class="flex items-center gap-1.5"><i data-lucide="cpu" class="w-3.5 h-3.5 text-cyan-400"></i> Apple Silicon (M1/M2/M3/M4) & Intel 지원</span>
+    </div>
+
+    <!-- App Mockup Preview -->
+    <div class="mt-14 max-w-4xl mx-auto rounded-2xl p-2 bg-gradient-to-b from-white/15 via-white/5 to-transparent border border-white/10 glow-purple">
+      <div class="rounded-xl overflow-hidden bg-mac-dark border border-mac-border shadow-2xl text-left">
+        <!-- Mac Window Header -->
+        <div class="h-10 bg-mac-sidebar px-4 flex items-center justify-between border-b border-mac-border">
+          <div class="flex items-center space-x-2">
+            <div class="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e]"></div>
+            <div class="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123]"></div>
+            <div class="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29]"></div>
+          </div>
+          <div class="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-brand-400"></i>
+            <span>Magic Note — 오늘 할 일 및 아이디어 메모</span>
+          </div>
+          <div class="w-10"></div>
+        </div>
+
+        <!-- Mac Window Content Mockup -->
+        <div class="grid grid-cols-1 md:grid-cols-12 min-h-[300px]">
+          <!-- Sidebar -->
+          <div class="hidden md:block md:col-span-4 bg-mac-sidebar/60 p-4 border-r border-mac-border text-xs space-y-2">
+            <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-2 mb-2">Notes</div>
+            <div class="p-2.5 rounded-lg bg-brand-500/20 border border-brand-500/30 text-white font-medium flex items-center justify-between">
+              <div class="truncate">
+                <p class="font-semibold text-brand-200">🚀 프로젝트 런칭 체크리스트</p>
+                <p class="text-[11px] text-slate-400 truncate mt-0.5">랜딩페이지 디자인, 게이트키퍼 가이드 작성...</p>
+              </div>
+              <span class="text-[10px] text-brand-300">방금</span>
+            </div>
+            <div class="p-2.5 rounded-lg hover:bg-white/5 text-slate-300 transition-colors cursor-pointer">
+              <p class="font-medium text-slate-200">💡 2026 앱 아이디어 브레인스토밍</p>
+              <p class="text-[11px] text-slate-500 truncate mt-0.5">Swift UI와 가벼운 인터랙션을 활용한...</p>
+            </div>
+            <div class="p-2.5 rounded-lg hover:bg-white/5 text-slate-300 transition-colors cursor-pointer">
+              <p class="font-medium text-slate-200">📌 주간 회의 주요 안건</p>
+              <p class="text-[11px] text-slate-500 truncate mt-0.5">배포 일정 및 사용자 피드백 수렴 방안</p>
+            </div>
+          </div>
+
+          <!-- Main Note Area -->
+          <div class="col-span-12 md:col-span-8 p-6 space-y-4">
+            <div class="border-b border-mac-border pb-3">
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <span>🚀 프로젝트 런칭 체크리스트</span>
+                <span class="text-xs font-normal px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">완료됨</span>
+              </h3>
+              <p class="text-xs text-slate-500 mt-1">마지막 수정: 오늘 오후 3:45 • 총 4개 항목</p>
+            </div>
+            
+            <div class="space-y-2.5 text-sm">
+              <div class="flex items-center gap-3 text-slate-300">
+                <i data-lucide="check-square" class="w-4 h-4 text-brand-400"></i>
+                <span class="line-through text-slate-400">macOS Swift 네이티브 앱 빌드 완성</span>
+              </div>
+              <div class="flex items-center gap-3 text-slate-300">
+                <i data-lucide="check-square" class="w-4 h-4 text-brand-400"></i>
+                <span class="line-through text-slate-400">구글 드라이브 배포 링크 생성 및 연결</span>
+              </div>
+              <div class="flex items-center gap-3 text-slate-200">
+                <i data-lucide="check-square" class="w-4 h-4 text-brand-400"></i>
+                <span class="line-through text-slate-400">게이트키퍼(Gatekeeper) 보안 해제 실행 가이드 제공</span>
+              </div>
+              <div class="flex items-center gap-3 text-brand-200 font-medium">
+                <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+                <span>Magic Note로 더 자유롭게 아이디어 기록하기 ✨</span>
+              </div>
+            </div>
+
+            <div class="mt-6 p-3 rounded-lg bg-white/5 border border-white/5 text-xs text-slate-400 leading-relaxed">
+              💬 "가장 가볍고 직관적인 인터페이스로 생각의 흐름을 방해하지 않는 경험을 선사합니다."
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Notice & Gatekeeper Execution Guide Section (핵심 요구사항) -->
+  <section id="guide" class="max-w-5xl mx-auto px-6 py-20">
+    <div class="p-8 sm:p-10 rounded-3xl bg-gradient-to-b from-amber-500/10 via-brand-950/20 to-black/40 border-2 border-amber-500/30 shadow-2xl relative overflow-hidden">
+      <!-- Glow effect -->
+      <div class="absolute -top-24 -right-24 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Warning Title Header -->
+      <div class="flex items-start sm:items-center gap-4 mb-6">
+        <div class="p-3 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 shrink-0">
+          <i data-lucide="shield-alert" class="w-8 h-8"></i>
+        </div>
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-400 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 inline-block mb-1">
+            필독 • 보안 및 실행 주의사항
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+            "확인되지 않은 개발자" 경고가 발생하나요?
+          </h2>
+        </div>
+      </div>
+
+      <!-- Explanation Box -->
+      <div class="bg-black/40 rounded-2xl p-5 border border-white/5 text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
+        <p class="mb-2">
+          <strong class="text-white">Magic Note</strong>는 개인 개발 프로젝트로 제작된 Swift 앱으로, 현재 
+          <span class="text-amber-300 font-semibold">Apple 공식 개발자 유료 인증서 등록이 되어있지 않은 상태</span>입니다.
+        </p>
+        <p class="text-slate-400 text-sm">
+          따라서 macOS의 기본 보안 시스템인 <strong class="text-slate-200">Gatekeeper(게이트키퍼)</strong>에 의해 
+          <em>"확인되지 않은 개발자가 배포했기 때문에 열 수 없습니다"</em> 또는 <em>"악성 소프트웨어가 있는지 확인할 수 없습니다"</em>라는 알림이 뜰 수 있습니다. 
+          앱 내부에는 어떠한 유해 코드도 포함되어 있지 않으므로 <strong>아래 3가지 방법 중 하나</strong>를 통해 안전하게 해제 후 실행하실 수 있습니다.
+        </p>
+      </div>
+
+      <!-- Step-by-Step Instructions -->
+      <div class="space-y-6">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="check-circle" class="w-5 h-5 text-brand-400"></i>
+          <span>간단한 실행 방법 (3가지 중 선택)</span>
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <!-- Method 1: 우클릭으로 열기 (권장) -->
+          <div class="glass-card rounded-2xl p-6 relative flex flex-col justify-between border-brand-500/30">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30">방법 1 (가장 추천)</span>
+                <span class="text-xs text-slate-400">3초 완료</span>
+              </div>
+              <h4 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                <i data-lucide="mouse-pointer-click" class="w-4 h-4 text-brand-400"></i>
+                마우스 우클릭 후 열기
+              </h4>
+              <ol class="text-xs text-slate-300 space-y-2 leading-relaxed list-decimal list-inside pl-1">
+                <li>다운로드한 <strong>Magic Note</strong> 앱을 <code class="text-brand-300 bg-white/5 px-1 py-0.5 rounded">응용 프로그램</code> 폴더로 이동합니다.</li>
+                <li>앱 아이콘에서 <strong>마우스 우클릭</strong> (또는 <kbd class="px-1 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px]">Control</kbd> + 클릭)을 합니다.</li>
+                <li>메뉴에서 <strong>[열기(Open)]</strong>를 클릭합니다.</li>
+                <li>보안 확인 창이 뜨면 <strong>[열기]</strong> 버튼을 다시 누르면 정상 실행됩니다.</li>
+              </ol>
+            </div>
+            <div class="mt-4 pt-3 border-t border-white/5 text-[11px] text-amber-300/90 flex items-center gap-1">
+              <i data-lucide="info" class="w-3.5 h-3.5 shrink-0"></i>
+              <span>최초 1회만 실행하면 이후에는 더블클릭으로 바로 열립니다.</span>
+            </div>
+          </div>
+
+          <!-- Method 2: 시스템 설정에서 허용 -->
+          <div class="glass-card rounded-2xl p-6 relative flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">방법 2</span>
+                <span class="text-xs text-slate-400">설정 앱 이용</span>
+              </div>
+              <h4 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                <i data-lucide="sliders" class="w-4 h-4 text-blue-400"></i>
+                시스템 설정에서 허용
+              </h4>
+              <ol class="text-xs text-slate-300 space-y-2 leading-relaxed list-decimal list-inside pl-1">
+                <li>Mac의 <strong>[시스템 설정 (System Settings)]</strong>을 엽니다.</li>
+                <li>좌측 사이드바에서 <strong>[개인정보 보호 및 보안]</strong>을 선택합니다.</li>
+                <li>아래로 스크롤하여 <strong>[보안]</strong> 섹션을 확인합니다.</li>
+                <li><em>"Magic Note의 사용이 차단되었습니다"</em> 문구 옆의 <strong>[확인 없이 열기(Open Anyway)]</strong> 버튼을 클릭합니다.</li>
+              </ol>
+            </div>
+            <div class="mt-4 pt-3 border-t border-white/5 text-[11px] text-slate-400 flex items-center gap-1">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 shrink-0 text-emerald-400"></i>
+              <span>macOS 공식 보안 허용 절차입니다.</span>
+            </div>
+          </div>
+
+          <!-- Method 3: 터미널 격리 속성 해제 -->
+          <div class="glass-card rounded-2xl p-6 relative flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">방법 3</span>
+                <span class="text-xs text-slate-400">고급 사용자</span>
+              </div>
+              <h4 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                <i data-lucide="terminal" class="w-4 h-4 text-purple-400"></i>
+                터미널 명령어로 해제
+              </h4>
+              <p class="text-xs text-slate-300 mb-3 leading-relaxed">
+                다운로드된 파일의 격리 플래그(Quarantine Attribute)를 제거하여 게이트키퍼 경고 없이 바로 실행합니다.
+              </p>
+              
+              <!-- Code block with copy button -->
+              <div class="relative bg-black/60 rounded-xl p-3 border border-white/10 font-mono text-[11px] text-brand-300 break-all mb-2">
+                <span id="cmd-text">xattr -cr /Applications/MagicNote.app</span>
+                <button onclick="copyCommand()" id="copy-btn" class="absolute top-2 right-2 p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 transition-colors" title="명령어 복사">
+                  <i data-lucide="copy" class="w-3.5 h-3.5" id="copy-icon"></i>
+                </button>
+              </div>
+              <p id="copy-toast" class="text-[10px] text-emerald-400 opacity-0 transition-opacity">✅ 클립보드에 복사되었습니다!</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-white/5 text-[11px] text-slate-400 flex items-center gap-1">
+              <i data-lucide="command" class="w-3.5 h-3.5 shrink-0 text-purple-400"></i>
+              <span>터미널 앱에 붙여넣고 엔터를 누르세요.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Download Reminder CTA in Guide -->
+        <div class="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-sm text-slate-300 text-center sm:text-left">
+            준비되셨나요? 지금 매직 노트를 다운로드하고 편리한 메모를 시작해보세요.
+          </div>
+          <a href="https://drive.google.com/file/d/16Qkdp1PL6v5PnHdcx_lznPVb0yeWUWc6/view?usp=sharing" 
+             target="_blank" 
+             rel="noopener noreferrer"
+             class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-brand-600 hover:bg-brand-500 rounded-xl shadow-lg shadow-brand-600/30 transition-all shrink-0">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Google Drive에서 다운로드</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="max-w-6xl mx-auto px-6 py-20">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-brand-400 mb-2">FEATURES</h2>
+      <p class="text-3xl font-extrabold text-white tracking-tight">
+        오직 메모에만 몰입할 수 있도록
+      </p>
+      <p class="text-slate-400 text-sm mt-3">
+        무겁고 느린 일렉트론(Electron) 앱 대신, 100% Swift 네이티브의 쾌적함을 경험하세요.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Feature 1 -->
+      <div class="glass-card rounded-2xl p-8">
+        <div class="w-12 h-12 rounded-xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center text-brand-400 mb-6">
+          <i data-lucide="zap" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">초고속 네이티브 성능</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">
+          macOS 시스템 리소스를 최소한으로 사용하여 배터리를 절약하고, 실행 즉시 0.1초 만에 창이 열립니다.
+        </p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="glass-card rounded-2xl p-8">
+        <div class="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-6">
+          <i data-lucide="layout" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">미니멀 & 직관적인 UI</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">
+          시각적 방해요소를 걷어내고, 메모 작성과 카테고리 관리에 꼭 필요한 기능만 간결하게 배치했습니다.
+        </p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="glass-card rounded-2xl p-8">
+        <div class="w-12 h-12 rounded-xl bg-pink-500/20 border border-pink-500/30 flex items-center justify-center text-pink-400 mb-6">
+          <i data-lucide="lock" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">로컬 우선 & 안전한 저장</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">
+          작성한 메모는 사용자의 Mac 내부에 안전하게 암호화 보관되며, 외부 서버로 무단 전송되지 않습니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="max-w-4xl mx-auto px-6 py-16">
+    <div class="text-center mb-12">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-white">자주 묻는 질문 (FAQ)</h2>
+      <p class="text-slate-400 text-sm mt-2">궁금한 점이 있으신가요?</p>
+    </div>
+
+    <div class="space-y-4">
+      <div class="glass-card rounded-2xl p-6">
+        <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
+          <i data-lucide="help-circle" class="w-4 h-4 text-brand-400"></i>
+          다운로드 후 어떻게 설치하나요?
+        </h3>
+        <p class="text-sm text-slate-400 leading-relaxed">
+          다운로드받은 압축 파일 또는 <code>.app</code> 파일을 Mac의 <code>/Applications (응용 프로그램)</code> 폴더로 드래그하여 옮겨주시면 설치가 완료됩니다.
+        </p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-6">
+        <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
+          <i data-lucide="help-circle" class="w-4 h-4 text-brand-400"></i>
+          앱을 실행할 때마다 게이트키퍼 해제를 반복해야 하나요?
+        </h3>
+        <p class="text-sm text-slate-400 leading-relaxed">
+          아닙니다. 최초 1회만 [우클릭 → 열기] 또는 [확인 없이 열기]를 통해 실행을 승인하시면, 이후에는 앱 아이콘을 더블클릭하기만 해도 일반 앱처럼 바로 실행됩니다.
+        </p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-6">
+        <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
+          <i data-lucide="help-circle" class="w-4 h-4 text-brand-400"></i>
+          Apple Silicon(M1/M2/M3/M4)과 Intel 맥 모두 지원하나요?
+        </h3>
+        <p class="text-sm text-slate-400 leading-relaxed">
+          네, 모든 최신 Apple Silicon 맥 및 Intel 기반 Mac에서 원활하게 동작합니다. (macOS Monterey 12.0 이상 권장)
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner Section -->
+  <section class="max-w-5xl mx-auto px-6 py-16">
+    <div class="rounded-3xl p-10 sm:p-14 bg-gradient-to-r from-brand-900/60 via-purple-900/40 to-slate-900/80 border border-brand-500/30 text-center relative overflow-hidden shadow-2xl">
+      <div class="relative z-10 max-w-2xl mx-auto space-y-6">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white">
+          지금 바로 Magic Note로<br />더 스마트한 기록을 시작하세요
+        </h2>
+        <p class="text-slate-300 text-sm sm:text-base">
+          무료로 다운로드받아 매직 노트의 깔끔한 기능을 경험해보세요.
+        </p>
+        <div>
+          <a href="https://drive.google.com/file/d/16Qkdp1PL6v5PnHdcx_lznPVb0yeWUWc6/view?usp=sharing" 
+             target="_blank" 
+             rel="noopener noreferrer"
+             class="inline-flex items-center gap-3 px-8 py-4 text-base font-bold text-white bg-brand-600 hover:bg-brand-500 rounded-2xl shadow-xl shadow-brand-600/40 hover:scale-105 transition-all">
+            <i data-lucide="download" class="w-5 h-5"></i>
+            <span>Magic Note 다운로드 (Google Drive)</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5 bg-black/60 py-12 text-center text-xs text-slate-500">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded-lg bg-brand-600/30 flex items-center justify-center text-brand-400">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+        </div>
+        <span class="font-bold text-slate-300">Magic Note</span>
+        <span>© 2026 All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="https://drive.google.com/file/d/16Qkdp1PL6v5PnHdcx_lznPVb0yeWUWc6/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="hover:text-slate-300 transition-colors">구글 드라이브 다운로드</a>
+        <a href="#guide" class="hover:text-slate-300 transition-colors">게이트키퍼 해제 안내</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script for Lucide Icons & Command Copy -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Copy command functionality
+    function copyCommand() {
+      const text = document.getElementById('cmd-text').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('copy-toast');
+        
+        toast.classList.remove('opacity-0');
+        toast.classList.add('opacity-100');
+        
+        setTimeout(() => {
+          toast.classList.remove('opacity-100');
+          toast.classList.add('opacity-0');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
