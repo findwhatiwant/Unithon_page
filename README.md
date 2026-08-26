@@ -3,7 +3,7 @@
 macOS용 네이티브 스마트 메모 앱 **Magic Note**의 공식 다운로드 및 설치 안내 랜딩 페이지입니다.
 
 ## 🔗 구글 드라이브 다운로드 링크
-- **URL**: [Google Drive 다운로드 링크](https://drive.google.com/file/d/16Qkdp1PL6v5PnHdcx_lznPVb0yeWUWc6/view?usp=sharing)
+- **URL**: [Google Drive 다운로드 링크](https://drive.google.com/file/d/1vczEgi0m_lUItfXyuJ9E_bmFE3mhfsTD/view?usp=sharing)
 
 ## 📌 주요 구성 내용
 1. **Hero & Download CTA**: 원클릭으로 구글 드라이브 다운로드 이동 버튼
